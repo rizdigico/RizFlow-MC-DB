@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { addAudit } from '../_store.js'
+import { addAudit } from '../../_store.js'
 
 export async function POST(request) {
   try {

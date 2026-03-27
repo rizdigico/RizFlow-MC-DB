@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { addLead } from '../_store.js'
+import { addLead } from '../../_store.js'
 
 export async function POST(request) {
   try {

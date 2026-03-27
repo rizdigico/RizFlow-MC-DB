@@ -15,9 +15,20 @@ export async function GET() {
       thisWeek: all.filter(l => new Date(l.receivedAt) > weekAgo).length,
       audits: audits.length,
       pipeline,
-      recent: all.slice(0, 20)
+      recent: all.slice(0, 20),
+      debug: {
+        hasRedisUrl: !!process.env.REDIS_URL,
+        leadsCount: leads.length,
+        auditsCount: audits.length
+      }
     })
   } catch (e) {
-    return NextResponse.json({ total: 0, thisWeek: 0, audits: 0, pipeline: { new: 0, contacted: 0, qualified: 0, proposal: 0, closed: 0 }, recent: [], error: e.message })
+    return NextResponse.json({
+      total: 0, thisWeek: 0, audits: 0,
+      pipeline: { new: 0, contacted: 0, qualified: 0, proposal: 0, closed: 0 },
+      recent: [],
+      error: e.message,
+      debug: { hasRedisUrl: !!process.env.REDIS_URL }
+    })
   }
 }

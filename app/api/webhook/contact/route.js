@@ -23,9 +23,23 @@ export async function POST(request) {
     
     console.log(`[WEBHOOK] New contact: ${data.name} (${data.email}) from ${data.company}`)
     
-    return NextResponse.json({ success: true, message: 'Lead received', leadId: filename })
+    return new NextResponse(JSON.stringify({ success: true, message: 'Lead received', leadId: filename }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': 'https://rizflow.co',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    })
   } catch (e) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 400 })
+    return new NextResponse(JSON.stringify({ success: false, error: e.message }), {
+      status: 400,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': 'https://rizflow.co',
+      },
+    })
   }
 }
 
@@ -33,7 +47,7 @@ export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': 'https://rizflow.co',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },

@@ -1,23 +1,11 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
 
-const LEADS_DIR = '/tmp/clients/leads'
-const AUDITS_DIR = '/tmp/clients/audits'
+const globalStore = globalThis.__rizflow_store || { leads: [], audits: [] }
+globalThis.__rizflow_store = globalStore
 
 export async function GET() {
   try {
-    const contactFiles = fs.existsSync(LEADS_DIR) ? fs.readdirSync(LEADS_DIR).filter(f => f.endsWith('.json')) : []
-    const auditFiles = fs.existsSync(AUDITS_DIR) ? fs.readdirSync(AUDITS_DIR).filter(f => f.endsWith('.json')) : []
-    
-    const allLeads = []
-    contactFiles.forEach(f => {
-      try { allLeads.push(JSON.parse(fs.readFileSync(path.join(LEADS_DIR, f), 'utf8'))) } catch {}
-    })
-    auditFiles.forEach(f => {
-      try { allLeads.push(JSON.parse(fs.readFileSync(path.join(AUDITS_DIR, f), 'utf8'))) } catch {}
-    })
-    
+    const allLeads = [...globalStore.leads, ...globalStore.audits]
     allLeads.sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt))
     
     const now = new Date()
@@ -29,7 +17,7 @@ export async function GET() {
     return NextResponse.json({
       total: allLeads.length,
       thisWeek: allLeads.filter(l => new Date(l.receivedAt) > weekAgo).length,
-      audits: allLeads.filter(l => l.type === 'audit').length,
+      audits: globalStore.audits.length,
       pipeline,
       recent: allLeads.slice(0, 20)
     })

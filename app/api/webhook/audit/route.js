@@ -1,29 +1,23 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs'
 
-const AUDITS_DIR = '/tmp/clients/audits'
+const globalStore = globalThis.__rizflow_store || { leads: [], audits: [] }
+globalThis.__rizflow_store = globalStore
 
 export async function POST(request) {
   try {
     const data = await request.json()
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-    const filename = `audit-${timestamp}-${data.email || 'unknown'}.json`
-    
-    const lead = {
+    const audit = {
       ...data,
       type: 'audit',
       receivedAt: new Date().toISOString(),
       status: 'new',
-      score: null,
-      assignedTo: null
+      id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`
     }
     
-    fs.mkdirSync(AUDITS_DIR, { recursive: true })
-    fs.writeFileSync(`${AUDITS_DIR}/${filename}`, JSON.stringify(lead, null, 2))
+    globalStore.audits.push(audit)
+    console.log(`[WEBHOOK] New audit: ${data.name} (${data.email}) | Total audits: ${globalStore.audits.length}`)
     
-    console.log(`[WEBHOOK] New audit: ${data.name} (${data.email}) from ${data.agency}`)
-    
-    return new NextResponse(JSON.stringify({ success: true, message: 'Audit request received', leadId: filename }), {
+    return new NextResponse(JSON.stringify({ success: true, message: 'Audit request received', leadId: audit.id }), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',

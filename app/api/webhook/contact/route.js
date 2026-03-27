@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server'
-
-// In-memory store (persists across warm function invocations on Vercel)
-const globalStore = globalThis.__rizflow_store || { leads: [], audits: [] }
-globalThis.__rizflow_store = globalStore
+import { store } from '../_store.js'
 
 export async function POST(request) {
   try {
@@ -14,37 +11,17 @@ export async function POST(request) {
       status: 'new',
       id: `contact-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`
     }
-    
-    globalStore.leads.push(lead)
-    console.log(`[WEBHOOK] New contact: ${data.name} (${data.email}) | Total leads: ${globalStore.leads.length}`)
-    
+    store.leads.push(lead)
+    console.log(`[WEBHOOK] Contact: ${data.name} | Total: ${store.leads.length}`)
     return new NextResponse(JSON.stringify({ success: true, message: 'Lead received', leadId: lead.id }), {
       status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://rizflow.co',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': 'https://rizflow.co', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' }
     })
   } catch (e) {
-    return new NextResponse(JSON.stringify({ success: false, error: e.message }), {
-      status: 400,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://rizflow.co',
-      },
-    })
+    return new NextResponse(JSON.stringify({ success: false, error: e.message }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': 'https://rizflow.co' } })
   }
 }
 
 export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': 'https://rizflow.co',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  })
+  return new NextResponse(null, { status: 200, headers: { 'Access-Control-Allow-Origin': 'https://rizflow.co', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' } })
 }

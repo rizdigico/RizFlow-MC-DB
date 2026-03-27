@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 
-const AUDITS_DIR = '/root/.openclaw/workspace/clients/audits'
+const AUDITS_DIR = '/tmp/clients/audits'
 
 export async function POST(request) {
   try {

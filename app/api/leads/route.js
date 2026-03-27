@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
 
-const LEADS_DIR = '/root/.openclaw/workspace/clients/leads'
-const AUDITS_DIR = '/root/.openclaw/workspace/clients/audits'
+const LEADS_DIR = '/tmp/clients/leads'
+const AUDITS_DIR = '/tmp/clients/audits'
 
 export async function GET() {
   try {

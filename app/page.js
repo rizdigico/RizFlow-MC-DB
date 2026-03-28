@@ -49,6 +49,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [clock, setClock] = useState('')
   const [agentStatuses, setAgentStatuses] = useState(AGENTS.map(a => ({ ...a, status: 'idle', jobs: 0, earned: '$0.00' })))
+  const [selectedLead, setSelectedLead] = useState(null)
 
   useEffect(() => {
     const tick = () => setClock(new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit', second: '2-digit' }))
@@ -74,6 +75,29 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
+      {selectedLead && (
+        <div onClick={() => setSelectedLead(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 10, padding: 28, maxWidth: 560, width: '100%', position: 'relative' }}>
+            <button onClick={() => setSelectedLead(null)} style={{ position: 'absolute', top: 14, right: 16, background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '1.2em', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+              <span className={`badge badge-${selectedLead.type}`}>{selectedLead.type}</span>
+              <span style={{ fontWeight: 700, fontSize: '1em' }}>{selectedLead.name}</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: '0.82em', marginBottom: 18 }}>
+              <div style={{ display: 'flex', gap: 8 }}><span style={{ color: 'var(--text-muted)', minWidth: 80 }}>Email</span><span style={{ color: 'var(--accent-blue)' }}>{selectedLead.email}</span></div>
+              {(selectedLead.company || selectedLead.agency) && <div style={{ display: 'flex', gap: 8 }}><span style={{ color: 'var(--text-muted)', minWidth: 80 }}>{selectedLead.type === 'audit' ? 'Agency' : 'Company'}</span><span>{selectedLead.company || selectedLead.agency}</span></div>}
+              {selectedLead.website && <div style={{ display: 'flex', gap: 8 }}><span style={{ color: 'var(--text-muted)', minWidth: 80 }}>Website</span><span>{selectedLead.website}</span></div>}
+              {selectedLead.phone && <div style={{ display: 'flex', gap: 8 }}><span style={{ color: 'var(--text-muted)', minWidth: 80 }}>Phone</span><span>{selectedLead.phone}</span></div>}
+              {selectedLead.referral && <div style={{ display: 'flex', gap: 8 }}><span style={{ color: 'var(--text-muted)', minWidth: 80 }}>Referral</span><span>{selectedLead.referral}</span></div>}
+              <div style={{ display: 'flex', gap: 8 }}><span style={{ color: 'var(--text-muted)', minWidth: 80 }}>Received</span><span>{new Date(selectedLead.receivedAt).toLocaleString()}</span></div>
+            </div>
+            {selectedLead.message && <>
+              <div style={{ fontSize: '0.7em', textTransform: 'uppercase', letterSpacing: 1, color: 'var(--text-muted)', marginBottom: 8 }}>Project Details</div>
+              <div style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: 6, padding: '12px 14px', fontSize: '0.85em', lineHeight: 1.6, whiteSpace: 'pre-wrap', color: 'var(--text-primary)' }}>{selectedLead.message}</div>
+            </>}
+          </div>
+        </div>
+      )}
       <aside className="sidebar">
         <div className="sidebar-logo">
           <h1>⚡ RizFlow</h1>
@@ -171,7 +195,7 @@ export default function Dashboard() {
           <div className="card" style={{ marginTop: 16 }}>
             <div className="card-header"><div className="card-title">Recent Leads</div></div>
             {data.recent.length > 0 ? data.recent.slice(0, 5).map(l => (
-              <div className="lead-item" key={l.receivedAt}>
+              <div className="lead-item" key={l.receivedAt} onClick={() => setSelectedLead(l)} style={{ cursor: 'pointer' }}>
                 <div className="lead-header"><span className="lead-name">{l.name}</span><span className={`badge badge-${l.type}`}>{l.type}</span></div>
                 <div className="lead-meta"><span className="lead-email">{l.email}</span><span>{l.company || l.agency || ''}</span></div>
                 {l.message && <div style={{ fontSize: '0.78em', color: 'var(--text-muted)', marginTop: 4, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{l.message}"</div>}
@@ -243,7 +267,7 @@ export default function Dashboard() {
                     <td style={{ fontWeight: 600 }}>{l.name}</td>
                     <td style={{ color: 'var(--accent-blue)' }}>{l.email}</td>
                     <td>{l.company || l.agency || '-'}</td>
-                    <td style={{ color: 'var(--text-muted)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={l.message || ''}>{l.message || '-'}</td>
+                    <td style={{ maxWidth: 220 }}>{l.message ? <span onClick={() => setSelectedLead(l)} style={{ color: 'var(--accent-blue)', cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }} title="Click to view full message">{l.message}</span> : <span style={{ color: 'var(--text-muted)' }}>-</span>}</td>
                     <td><span className={`badge badge-${l.type}`}>{l.type}</span></td>
                     <td><span className={`badge badge-${l.status || 'new'}`}>{l.status || 'new'}</span></td>
                     <td style={{ color: 'var(--text-muted)' }}>{new Date(l.receivedAt).toLocaleDateString()}</td>

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { addLead } from '../_store.js'
+import { addLead } from '../../_store.js'
 
 const allowedOrigins = ['https://rizflow.co', 'https://www.rizflow.co']
 
@@ -13,22 +13,33 @@ function corsHeaders(origin) {
   }
 }
 
+async function parseBody(request) {
+  const contentType = request.headers.get('content-type') || ''
+  if (contentType.includes('application/json')) {
+    return request.json()
+  }
+  const text = await request.text()
+  return JSON.parse(text)
+}
+
 export async function POST(request) {
+  const origin = request.headers.get('origin') || ''
   try {
-    const origin = request.headers.get('origin') || ''
-    const data = await request.json()
+    const data = await parseBody(request)
     const lead = {
-      ...data, type: 'contact', receivedAt: new Date().toISOString(),
-      status: 'new', id: `contact-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`
+      ...data,
+      type: 'contact',
+      receivedAt: new Date().toISOString(),
+      status: 'new',
+      id: `contact-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
     }
     await addLead(lead)
     return new NextResponse(JSON.stringify({ success: true, lead }), {
-      status: 200, headers: corsHeaders(origin)
+      status: 200, headers: corsHeaders(origin),
     })
   } catch (e) {
-    const origin = request.headers.get('origin') || ''
     return new NextResponse(JSON.stringify({ success: false, error: e.message }), {
-      status: 400, headers: corsHeaders(origin)
+      status: 400, headers: corsHeaders(origin),
     })
   }
 }

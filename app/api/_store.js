@@ -1,37 +1,51 @@
 import Redis from 'ioredis'
 
-let redis = null
+function createRedis() {
+  return new Redis(process.env.REDIS_URL, {
+    maxRetriesPerRequest: 3,
+    connectTimeout: 5000,
+    enableReadyCheck: false,
+    lazyConnect: false,
+  })
+}
 
-export function getRedis() {
-  if (!redis) {
-    redis = new Redis(process.env.REDIS_URL, {
-      maxRetriesPerRequest: 3,
-      retryStrategy: (times) => Math.min(times * 50, 2000),
-    })
+async function withRedis(fn) {
+  const redis = createRedis()
+  try {
+    return await fn(redis)
+  } finally {
+    redis.disconnect()
   }
-  return redis
+}
+
+async function parseBody(text) {
+  return JSON.parse(text)
 }
 
 export async function getLeads() {
-  const data = await getRedis().get('rizflow:leads')
-  return data ? JSON.parse(data) : []
+  return withRedis(async (redis) => {
+    const items = await redis.lrange('rizflow:leads', 0, -1)
+    return items.map(i => JSON.parse(i))
+  })
 }
 
 export async function getAudits() {
-  const data = await getRedis().get('rizflow:audits')
-  return data ? JSON.parse(data) : []
+  return withRedis(async (redis) => {
+    const items = await redis.lrange('rizflow:audits', 0, -1)
+    return items.map(i => JSON.parse(i))
+  })
 }
 
 export async function addLead(lead) {
-  const leads = await getLeads()
-  leads.push(lead)
-  await getRedis().set('rizflow:leads', JSON.stringify(leads))
-  return lead
+  return withRedis(async (redis) => {
+    await redis.lpush('rizflow:leads', JSON.stringify(lead))
+    return lead
+  })
 }
 
 export async function addAudit(audit) {
-  const audits = await getAudits()
-  audits.push(audit)
-  await getRedis().set('rizflow:audits', JSON.stringify(audits))
-  return audit
+  return withRedis(async (redis) => {
+    await redis.lpush('rizflow:audits', JSON.stringify(audit))
+    return audit
+  })
 }

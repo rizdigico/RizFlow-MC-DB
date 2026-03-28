@@ -174,6 +174,7 @@ export default function Dashboard() {
               <div className="lead-item" key={l.receivedAt}>
                 <div className="lead-header"><span className="lead-name">{l.name}</span><span className={`badge badge-${l.type}`}>{l.type}</span></div>
                 <div className="lead-meta"><span className="lead-email">{l.email}</span><span>{l.company || l.agency || ''}</span></div>
+                {l.message && <div style={{ fontSize: '0.78em', color: 'var(--text-muted)', marginTop: 4, fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>"{l.message}"</div>}
                 <div className="lead-time">{new Date(l.receivedAt).toLocaleString()}</div>
               </div>
             )) : <div style={{ textAlign: 'center', padding: 30, color: 'var(--text-muted)' }}>No leads yet. Waiting for form submissions...</div>}
@@ -235,18 +236,19 @@ export default function Dashboard() {
           <div className="card">
             <div className="card-header"><div className="card-title">All Leads</div></div>
             <table className="table">
-              <thead><tr><th>Name</th><th>Email</th><th>Company</th><th>Type</th><th>Status</th><th>Date</th></tr></thead>
+              <thead><tr><th>Name</th><th>Email</th><th>Company</th><th>Project Details</th><th>Type</th><th>Status</th><th>Date</th></tr></thead>
               <tbody>
                 {data.recent.length > 0 ? data.recent.map(l => (
                   <tr key={l.receivedAt}>
                     <td style={{ fontWeight: 600 }}>{l.name}</td>
                     <td style={{ color: 'var(--accent-blue)' }}>{l.email}</td>
                     <td>{l.company || l.agency || '-'}</td>
+                    <td style={{ color: 'var(--text-muted)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={l.message || ''}>{l.message || '-'}</td>
                     <td><span className={`badge badge-${l.type}`}>{l.type}</span></td>
                     <td><span className={`badge badge-${l.status || 'new'}`}>{l.status || 'new'}</span></td>
                     <td style={{ color: 'var(--text-muted)' }}>{new Date(l.receivedAt).toLocaleDateString()}</td>
                   </tr>
-                )) : <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 30 }}>No leads yet</td></tr>}
+                )) : <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 30 }}>No leads yet</td></tr>}
               </tbody>
             </table>
           </div>
